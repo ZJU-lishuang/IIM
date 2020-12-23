@@ -63,22 +63,26 @@ def generate_masks():
 
             centroid_list = []
             wh_list = []
+            #通过矩形框得到中心点和宽高
             for id,(w_start, h_start, w_end, h_end) in enumerate(ImgInfo["boxes"],0):
                 centroid_list.append([(w_end + w_start) / 2, (h_end + h_start) / 2])
                 wh_list.append([max((w_end - w_start) / 2, 3), max((h_end - h_start) / 2, 3)])
             # print(len(centroid_list))
             centroids = np.array(centroid_list.copy(),dtype='int')
             wh        = np.array(wh_list.copy(),dtype='int')
-            wh[wh>25] = 25
+            wh[wh>25] = 25  #限制最大尺寸的一半不超过25
             human_num = ImgInfo["human_num"]
+            #优化所有点矩形框
             for point in centroids:
                 point = point[None,:]
 
+                #计算当前点到其它点的欧式距离
                 dists = euclidean_dist(point, centroids)
                 dists = dists.squeeze()
                 id = np.argsort(dists)
 
                 for start, first in enumerate(id, 0):
+                    #4个邻近点
                     if start > 0 and start < 5:
                         src_point = point.squeeze()
                         dst_point = centroids[first]
@@ -87,6 +91,7 @@ def generate_masks():
                         dst_w, dst_h = wh[first][0], wh[first][1]
 
                         count = 0
+                        #两点代表头部所形成的矩形框相交
                         if (src_w + dst_w) - np.abs(src_point[0] - dst_point[0]) > 0 and (src_h + dst_h) - np.abs(src_point[1] - dst_point[1]) > 0:
                             w_reduce = ((src_w + dst_w) - np.abs(src_point[0] - dst_point[0])) / 2
                             h_reduce = ((src_h + dst_h) - np.abs(src_point[1] - dst_point[1])) / 2
@@ -94,11 +99,13 @@ def generate_masks():
                                 -int(max(src_h - h_reduce, dst_h - h_reduce) / 2.), -60)
 
                         else:
+                            #距离阈值不超过60(前面限制了25的尺寸？)
                             threshold_w, threshold_h = max(-int(max(src_w, dst_w) / 2.), -60), max(-int(max(src_h, dst_h) / 2.), -60)
                         # threshold_w, threshold_h = -5, -5
+                        #两点代表头部所形成的矩形框距离过近
                         while (src_w + dst_w) - np.abs(src_point[0] - dst_point[0]) > threshold_w and (src_h + dst_h) - np.abs(
                                 src_point[1] - dst_point[1]) > threshold_h:
-
+                            #减少面积大的矩形框的尺寸,缩小宽高为原来90%
                             if (dst_w * dst_h) > (src_w * src_h):
                                 wh[first][0] = max(int(wh[first][0] * 0.9), 2)
                                 wh[first][1] = max(int(wh[first][1] * 0.9), 2)
@@ -108,15 +115,19 @@ def generate_masks():
                                 wh[id[0]][1] = max(int(wh[id[0]][1] * 0.9), 2)
                                 src_w, src_h = wh[id[0]][0], wh[id[0]][1]
 
+                            #当多于两个人
                             if human_num >= 3:
                                 dst_point_ = centroids[id[start + 1]]
                                 dst_w_, dst_h_ = wh[id[start + 1]][0], wh[id[start + 1]][1]
+                                #离当前点第二近的点形成的矩形框面积最大时
                                 if (dst_w_ * dst_h_) > (src_w * src_h) and (dst_w_ * dst_h_) > (dst_w * dst_h):
+                                    #离当前点第二近的点距离当前点过近，小于三个像素点差距
                                     if (src_w + dst_w_) - np.abs(src_point[0] - dst_point_[0]) > -3 and (src_h + dst_h_) - np.abs(
                                             src_point[1] - dst_point_[1]) > -3:
+                                        #减小宽高为原来90%
                                         wh[id[start + 1]][0] = max(int(wh[id[start + 1]][0] * 0.9), 2)
                                         wh[id[start + 1]][1] = max(int(wh[id[start + 1]][1] * 0.9), 2)
-
+                            #优化矩形框大小次数
                             count += 1
                             if count > 40:
                                 break
@@ -129,7 +140,7 @@ def generate_masks():
 
                     w_start = center_w - width
                     w_end = center_w + width
-                    #
+                    #防止越界
                     if h_start < 0:
                         h_start = 0
 
@@ -141,10 +152,10 @@ def generate_masks():
 
                     if w_end > w:
                         w_end = w
-
+                    #mask的样式是椭圆还是矩形
                     if cycle:
                         mask = generate_cycle_mask(height, width)
-                        mask_map[h_start:h_end, w_start: w_end] = mask
+                        mask_map[h_start:h_end+1, w_start: w_end+1] = mask
 
                     else:
                         mask_map[h_start:h_end, w_start: w_end] = 1
