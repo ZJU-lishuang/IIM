@@ -9,9 +9,9 @@ import math
 from functions import euclidean_dist,  generate_cycle_mask, average_del_min
 mode = 'train'
 
-img_path = '/media/D/GJY/ht/ProcessedData/NWPU/images'
-json_path = '/media/D/GJY/ht/ProcessedData/NWPU/jsons'
-mask_path = '/media/D/GJY/ht/ProcessedData/NWPU/mask_50_60'
+img_path = '/home/lishuang/Disk/download/NWPU-Crowd/images'
+json_path = '/home/lishuang/Disk/download/NWPU-Crowd/jsons'
+mask_path = '/home/lishuang/Disk/download/NWPU-Crowd/mask_50_60'
 cycle  =False
 if  not os.path.exists(mask_path):
     os.makedirs(mask_path)
@@ -51,6 +51,10 @@ def generate_masks():
 
             mask_map = np.zeros((h, w),dtype='uint8')
             gt_name = os.path.join(json_path, img_id.split('.')[0] + '.json')
+
+            # 跳过不存在标注文件的图片
+            if not os.path.exists(gt_name):
+                continue
 
             with open(gt_name) as f:
                 ImgInfo = json.load(f)
