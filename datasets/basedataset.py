@@ -25,7 +25,7 @@ class Dataset(data.Dataset):
                 lines = f.readlines()
 
             box_gt_Info = []
-            if self.mode == 'val':
+            if self.mode == 'val' and "NWPU" in data_path:
                 box_gt_Info= self.read_box_gt(os.path.join(data_path,box_gt_txt))
 
             if "NWPU" in data_path:
@@ -36,6 +36,15 @@ class Dataset(data.Dataset):
                     if self.mode == 'val':
                         self.box_gt.append(box_gt_Info[int(splited[0])])
                     self.info.append(splited[1:3]) # lum, crowd level
+            elif "part_B" in data_path:
+                for line in lines:
+                    splited = line.strip().split()
+                    self.img_path.append(os.path.join(data_path,splited[0]+'.jpg'))
+                    self.mask_path.append(os.path.join(data_path, splited[0].replace("images/","mask_50_60/") + '.png'))
+                    if self.mode == 'val':
+                        json_name=os.path.join(data_path, splited[0].replace("images/","jsons/") + '.json')
+                        self.box_gt.append(self.read_box_gt_json(json_name))
+                        # self.box_gt.append(box_gt_Info[int(splited[0])])
 
             # img_path = self.img_path[439]
             # print(img_path)
@@ -99,6 +108,21 @@ class Dataset(data.Dataset):
         w, h = img.size
         mask_map =  Image.open(mask_path)  
         return img, mask_map
+
+    def read_box_gt_json(self,json_name):
+        with open(json_name) as f:
+            ImgInfo = json.load(f)
+        human_num = ImgInfo["human_num"]
+        ann_points=np.array(ImgInfo['points'])
+        false_sigma=np.ones_like(ann_points)*30
+        false_level=np.ones([ann_points.shape[0],])*3
+        if human_num > 0:
+            return {'num': human_num, 'points': ann_points, 'sigma': false_sigma,
+                            'level': false_level}
+        else:
+            return {'num': 0, 'points': [], 'sigma': [], 'level': []}
+
+
 
     def read_box_gt(self,box_gt_file):
         gt_data = {}

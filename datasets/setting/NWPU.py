@@ -7,7 +7,8 @@ __C_NWPU = edict()
 
 cfg_data = __C_NWPU
 
-__C_NWPU.TRAIN_SIZE = (512,1024)
+# __C_NWPU.TRAIN_SIZE = (512,1024)
+__C_NWPU.TRAIN_SIZE = (256,512)
 __C_NWPU.DATA_PATH = '../ProcessedData/NWPU/'
 __C_NWPU.TRAIN_LST = 'train.txt'
 __C_NWPU.VAL_LST =  'val.txt'
@@ -19,7 +20,7 @@ __C_NWPU.LABEL_FACTOR = 1
 __C_NWPU.LOG_PARA = 1.
 
 __C_NWPU.RESUME_MODEL = ''#model path
-__C_NWPU.TRAIN_BATCH_SIZE = 12 #imgs
+__C_NWPU.TRAIN_BATCH_SIZE = 2 #imgs
 
 __C_NWPU.VAL_BATCH_SIZE = 1 # must be 1
 

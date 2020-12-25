@@ -145,13 +145,13 @@ def test(file_list, model_path):
             b = torch.zeros_like(pred_map)
             binar_map = torch.where(pred_map >= pred_threshold, a, b)
 
-            imgdst = cv2.imread(imgname)  # bgr
+            # imgdst = cv2.imread(imgname)  # bgr
             pred_data, boxes = get_boxInfo_from_Binar_map(binar_map.cpu().numpy())
-            pred_p=pred_data['points']
-            point_r_value = 5
-            for i in range(pred_p.shape[0]):
-                cv2.circle(imgdst, (int(pred_p[i][0]), int(pred_p[i][1])), point_r_value, (0, 255, 0), -1)  # tp: green
-            cv2.imwrite('./saved_exp_results/'  + filename +'_'+str(pred_data['num'])+ '.jpg',imgdst)
+            # pred_p=pred_data['points']
+            # point_r_value = 5
+            # for i in range(pred_p.shape[0]):
+            #     cv2.circle(imgdst, (int(pred_p[i][0]), int(pred_p[i][1])), point_r_value, (0, 255, 0), -1)  # tp: green
+            # cv2.imwrite('./saved_exp_results/'  + filename +'_'+str(pred_data['num'])+ '.jpg',imgdst)
 
             with open(out_file_name, 'a') as f:
 

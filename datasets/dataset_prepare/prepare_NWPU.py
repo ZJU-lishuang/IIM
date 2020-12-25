@@ -9,9 +9,17 @@ import math
 from functions import euclidean_dist,  generate_cycle_mask, average_del_min
 mode = 'train'
 
-img_path = '/home/lishuang/Disk/download/NWPU-Crowd/images'
-json_path = '/home/lishuang/Disk/download/NWPU-Crowd/jsons'
-mask_path = '/home/lishuang/Disk/download/NWPU-Crowd/mask_50_60'
+#NWPU
+# img_path = '/home/lishuang/Disk/download/NWPU-Crowd/images'
+# json_path = '/home/lishuang/Disk/download/NWPU-Crowd/jsons'
+# mask_path = '/home/lishuang/Disk/download/NWPU-Crowd/mask_50_60'
+
+#SHHB
+#train_data  test_data
+img_path = '/home/lishuang/Disk/download/part_B_final/test_data/images'
+json_path = '/home/lishuang/Disk/download/part_B_final/test_data/jsons'
+mask_path = '/home/lishuang/Disk/download/part_B_final/test_data/mask_50_60'
+
 cycle  =False
 if  not os.path.exists(mask_path):
     os.makedirs(mask_path)

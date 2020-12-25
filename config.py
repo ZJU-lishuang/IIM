@@ -9,7 +9,7 @@ cfg = __C
 
 #------------------------------TRAIN------------------------
 __C.SEED = 3035  # random seed,  for reproduction
-__C.DATASET = 'NWPU'  # dataset selection: GCC, SHHA, SHHB, UCF50, QNRF, WE, Mall, UCSD
+__C.DATASET = 'SHHB'  # dataset selection: GCC, SHHA, SHHB, UCF50, QNRF, WE, Mall, UCSD,NWPU
 
 
 __C.NET = 'HR_Net' #  optional ['HR_Net', 'VGG16_FPN']

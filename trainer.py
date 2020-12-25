@@ -67,6 +67,7 @@ class Trainer():
             print( '='*20 )
 
             # validation
+            epoch=24
             if epoch%cfg.VAL_FREQ==0 and epoch>cfg.VAL_DENSE_START:
                 self.timer['val time'].tic()
                 self.validate()
@@ -124,6 +125,7 @@ class Trainer():
                 vis_results('tmp_vis', 0, self.writer, self.restore_transform, img, pre_map[0].detach().cpu().numpy(), \
                                  gt_map[0].detach().cpu().numpy(),binar_map.detach().cpu().numpy(),
                                  threshold_matrix.detach().cpu().numpy(),boxes)
+
 
     def get_boxInfo_from_Binar_map(self, Binar_numpy, min_area=3):
         Binar_numpy = Binar_numpy.squeeze().astype(np.uint8)
