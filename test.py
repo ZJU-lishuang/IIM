@@ -12,14 +12,15 @@ import  cv2
 
 dataset = 'NWPU'
 dataRoot = '../ProcessedData/' + dataset
-test_list = 'test.txt'
+test_list = 'testmin.txt'
 
-GPU_ID = '2,3'
+GPU_ID = '0,1'
 os.environ["CUDA_VISIBLE_DEVICES"] = GPU_ID
 torch.backends.cudnn.benchmark = True
 
 netName = 'HR_Net'
-model_path = '../PretrainedCrowdLocModel/NWPU-HR-ep_241_F1_0.802_Pre_0.841_Rec_0.766_mae_55.6_mse_330.9.pth'
+# model_path = '../PretrainedCrowdLocModel/NWPU-HR-ep_241_F1_0.802_Pre_0.841_Rec_0.766_mae_55.6_mse_330.9.pth'
+model_path ="/home/lishuang/Disk/gitlab/traincode/crowd_counting/PyTorch_Pretrained/NWPU-HR-ep_241_F1_0.802_Pre_0.841_Rec_0.766_mae_55.6_mse_330.9.pth"
 # netName = 'VGG16_FPN'
 # model_path = '../PretrainedCrowdLocModel/NWPU-VGG-ep_361_F1_0.770_Pre_0.802_Rec_0.741_mae_62.7_mse_299.2.pth'
 
@@ -77,7 +78,7 @@ def test(file_list, model_path):
     for infos in file_list:
         filename = infos.split()[0]
 
-        imgname = os.path.join(dataRoot, 'images', filename + '.jpg')
+        imgname = os.path.join(dataRoot, 'test', filename + '.jpg')
         img = Image.open(imgname)
 
         if img.mode == 'L':
@@ -144,7 +145,13 @@ def test(file_list, model_path):
             b = torch.zeros_like(pred_map)
             binar_map = torch.where(pred_map >= pred_threshold, a, b)
 
+            imgdst = cv2.imread(imgname)  # bgr
             pred_data, boxes = get_boxInfo_from_Binar_map(binar_map.cpu().numpy())
+            pred_p=pred_data['points']
+            point_r_value = 5
+            for i in range(pred_p.shape[0]):
+                cv2.circle(imgdst, (int(pred_p[i][0]), int(pred_p[i][1])), point_r_value, (0, 255, 0), -1)  # tp: green
+            cv2.imwrite('./saved_exp_results/'  + filename +'_'+str(pred_data['num'])+ '.jpg',imgdst)
 
             with open(out_file_name, 'a') as f:
 

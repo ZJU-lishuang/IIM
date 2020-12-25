@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import math
 import json
+# import cv2
 class Dataset(data.Dataset):
     def __init__(self, datasetname, mode, **argv):
         self.mode = mode
@@ -36,6 +37,9 @@ class Dataset(data.Dataset):
                         self.box_gt.append(box_gt_Info[int(splited[0])])
                     self.info.append(splited[1:3]) # lum, crowd level
 
+            # img_path = self.img_path[439]
+            # print(img_path)
+            # img = Image.open(img_path)
 
 
         self.num_samples = len(self.img_path)

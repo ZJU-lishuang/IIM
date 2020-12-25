@@ -12,7 +12,7 @@ gt_file = dataRoot + '/val_gt_loc.txt'
 img_path = ori_data = dataRoot + '/images'
 
 exp_name = './saved_exp_results/XXX_vis_results'
-pred_file = 'NWPU_HR_Net_val.txt'
+pred_file = 'NWPU_HR_Net_testmin.txt'
 
 flagError = False
 id_std = [i for i in range(3110,3610,1)]

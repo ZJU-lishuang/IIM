@@ -19,7 +19,7 @@ __C.PRE_HR_WEIGHTS = '../PyTorch_Pretrained/hrnetv2_w48_imagenet_pretrained.pth'
 __C.RESUME = False  # contine training
 __C.RESUME_PATH = './exp/12-04_17-28_NWPU_HR_Net/latest_state.pth'
 
-__C.GPU_ID = '0,1,2,3'  # sigle gpu: [0], [1] ...; multi gpus: [0,1]
+__C.GPU_ID = '0'  # sigle gpu: [0], [1] ...; multi gpus: [0,1]
 
 __C.OPT = 'Adam'  #'Adam'
 # learning rate settings
