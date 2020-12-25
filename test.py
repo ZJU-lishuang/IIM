@@ -8,11 +8,16 @@ import tqdm
 from model.locator import Crowd_locator
 from misc.utils import *
 from PIL import Image, ImageOps
-import  cv2 
+import  cv2
+import json
 
 dataset = 'NWPU'
 dataRoot = '../ProcessedData/' + dataset
-test_list = 'testmin.txt'
+test_list = 'val.txt'
+
+dataset = 'part_B_final'
+dataRoot = '../ProcessedData/' + dataset
+test_list = 'val.txt'
 
 GPU_ID = '0,1'
 os.environ["CUDA_VISIBLE_DEVICES"] = GPU_ID
@@ -30,6 +35,9 @@ out_file_name= './saved_exp_results/' + dataset + '_' + netName + '_' + test_lis
 
 
 if dataset == 'NWPU':
+    mean_std = ([0.446139603853, 0.409515678883, 0.395083993673], [0.288205742836, 0.278144598007, 0.283502370119])
+
+if dataset == 'part_B_final':
     mean_std = ([0.446139603853, 0.409515678883, 0.395083993673], [0.288205742836, 0.278144598007, 0.283502370119])
     
 
@@ -63,6 +71,36 @@ def get_boxInfo_from_Binar_map(Binar_numpy, min_area=3):
     pre_data = {'num': len(points), 'points': points}
     return pre_data, boxes
 
+def read_box_gt(box_gt_file):
+    gt_data = {}
+    with open(box_gt_file) as f:
+        for line in f.readlines():
+            line = line.strip().split(' ')
+
+            line_data = [int(i) for i in line]
+            idx, num = [line_data[0], line_data[1]]
+            points_r = []
+            if num > 0:
+                points_r = np.array(line_data[2:]).reshape(((len(line) - 2) // 5, 5))
+                gt_data[idx] = {'num': num, 'points': points_r[:, 0:2], 'sigma': points_r[:, 2:4], 'level': points_r[:, 4]}
+            else:
+                gt_data[idx] = {'num': 0, 'points': [], 'sigma': [], 'level': []}
+
+    return gt_data
+
+def read_box_gt_json(json_name):
+    with open(json_name) as f:
+        ImgInfo = json.load(f)
+    human_num = ImgInfo["human_num"]
+    ann_points=np.array(ImgInfo['points'])
+    false_sigma=np.ones_like(ann_points)*30
+    false_level=np.ones([ann_points.shape[0],])*3
+    if human_num > 0:
+        return {'num': human_num, 'points': ann_points, 'sigma': false_sigma,
+                        'level': false_level}
+    else:
+        return {'num': 0, 'points': [], 'sigma': [], 'level': []}
+
 
 def test(file_list, model_path):
 
@@ -73,12 +111,24 @@ def test(file_list, model_path):
 
     gts = []
     preds = []
+    cnt_errors = {'mae': AverageMeter(), 'mse': AverageMeter(), 'nae': AverageMeter()}
+
+    if dataset == 'NWPU':
+        box_gt_txt='val_gt_loc.txt'
+        box_gt_Info = read_box_gt(os.path.join(dataRoot, box_gt_txt))
 
     file_list = tqdm.tqdm(file_list)
     for infos in file_list:
         filename = infos.split()[0]
 
-        imgname = os.path.join(dataRoot, 'test', filename + '.jpg')
+        # imgname = os.path.join(dataRoot, 'test', filename + '.jpg')
+        imgname = os.path.join(dataRoot, 'images', filename + '.jpg')
+        if dataset == 'NWPU':
+            gt_data = box_gt_Info[int(filename)]
+        if dataset == 'part_B_final':
+            imgname=os.path.join(dataRoot, filename + '.jpg')
+            json_name = os.path.join(dataRoot, filename.replace("images/", "jsons/") + '.json')
+            gt_data=read_box_gt_json(json_name)
         img = Image.open(imgname)
 
         if img.mode == 'L':
@@ -145,13 +195,28 @@ def test(file_list, model_path):
             b = torch.zeros_like(pred_map)
             binar_map = torch.where(pred_map >= pred_threshold, a, b)
 
-            # imgdst = cv2.imread(imgname)  # bgr
+            imgdst = cv2.imread(imgname)  # bgr
             pred_data, boxes = get_boxInfo_from_Binar_map(binar_map.cpu().numpy())
-            # pred_p=pred_data['points']
-            # point_r_value = 5
-            # for i in range(pred_p.shape[0]):
-            #     cv2.circle(imgdst, (int(pred_p[i][0]), int(pred_p[i][1])), point_r_value, (0, 255, 0), -1)  # tp: green
-            # cv2.imwrite('./saved_exp_results/'  + filename +'_'+str(pred_data['num'])+ '.jpg',imgdst)
+            pred_p=pred_data['points']
+            point_r_value = 5
+            for i in range(pred_p.shape[0]):
+                cv2.circle(imgdst, (int(pred_p[i][0]), int(pred_p[i][1])), point_r_value, (0, 255, 0), -1)  # tp: green
+            cv2.imwrite('./saved_exp_results/img_save/'  + os.path.basename(filename) +'_'+str(pred_data['num'])+ '.jpg',imgdst)
+
+
+            gt_count, pred_cnt = gt_data['num']*1.0, pred_data['num']
+            s_mae = abs(gt_count - pred_cnt)
+            s_mse = ((gt_count - pred_cnt) * (gt_count - pred_cnt))
+            cnt_errors['mae'].update(s_mae)
+            cnt_errors['mse'].update(s_mse)
+            if gt_count != 0:
+                s_nae = (abs(gt_count - pred_cnt) / gt_count)
+                cnt_errors['nae'].update(s_nae)
+
+            mae = cnt_errors['mae'].avg
+            mse = np.sqrt(cnt_errors['mse'].avg)
+            nae = cnt_errors['nae'].avg
+            print("mae=",mae,"mse=",mse,"nae=",nae)
 
             with open(out_file_name, 'a') as f:
 
