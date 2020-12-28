@@ -212,7 +212,7 @@ class Dataset(data.Dataset):
 
 if __name__ == "__main__":
     def generate_mask(height, width):
-        y, x = np.ogrid[-height:height, -width:width]
+        y, x = np.ogrid[-height:height+1, -width:width+1]
         # circle mask
         mask = (x ) ** 2 / (height**2) + (y ) ** 2/(width**2) <= 1
         return mask.astype(float)

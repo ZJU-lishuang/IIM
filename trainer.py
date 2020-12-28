@@ -58,7 +58,7 @@ class Trainer():
         # self.validate()
         for epoch in range(self.epoch,cfg.MAX_EPOCH):
             self.epoch = epoch
-            # training    
+            # training
             self.timer['train time'].tic()
             self.train()
             self.timer['train time'].toc(average=False)
@@ -67,7 +67,6 @@ class Trainer():
             print( '='*20 )
 
             # validation
-            epoch=24
             if epoch%cfg.VAL_FREQ==0 and epoch>cfg.VAL_DENSE_START:
                 self.timer['val time'].tic()
                 self.validate()

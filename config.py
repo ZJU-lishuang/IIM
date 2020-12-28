@@ -9,12 +9,13 @@ cfg = __C
 
 #------------------------------TRAIN------------------------
 __C.SEED = 3035  # random seed,  for reproduction
-__C.DATASET = 'SHHB'  # dataset selection: GCC, SHHA, SHHB, UCF50, QNRF, WE, Mall, UCSD,NWPU
+__C.DATASET = 'NWPU'  # dataset selection: GCC, SHHA, SHHB, UCF50, QNRF, WE, Mall, UCSD,NWPU
 
 
 __C.NET = 'HR_Net' #  optional ['HR_Net', 'VGG16_FPN']
 
-__C.PRE_HR_WEIGHTS = '../PyTorch_Pretrained/hrnetv2_w48_imagenet_pretrained.pth'
+# __C.PRE_HR_WEIGHTS = '../PyTorch_Pretrained/hrnetv2_w48_imagenet_pretrained.pth'
+__C.PRE_HR_WEIGHTS = '../PyTorch_Pretrained/NWPU-HR-ep_241_F1_0.802_Pre_0.841_Rec_0.766_mae_55.6_mse_330.9.pth'
 
 __C.RESUME = False  # contine training
 __C.RESUME_PATH = './exp/12-04_17-28_NWPU_HR_Net/latest_state.pth'
